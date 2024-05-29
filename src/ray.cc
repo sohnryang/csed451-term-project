@@ -15,4 +15,4 @@ glm::vec3 &Ray::direction() { return _direction; }
 
 const glm::vec3 &Ray::direction() const { return _direction; }
 
-glm::vec3 Ray::at(float t) { return _origin + t * _direction; }
+glm::vec3 Ray::at(float t) const { return _origin + t * _direction; }

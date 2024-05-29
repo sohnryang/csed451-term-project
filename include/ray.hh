@@ -16,5 +16,5 @@ public:
   glm::vec3 &direction();
   const glm::vec3 &direction() const;
 
-  glm::vec3 at(float t);
+  glm::vec3 at(float t) const;
 };
