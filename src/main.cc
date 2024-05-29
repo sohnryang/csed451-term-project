@@ -7,7 +7,18 @@
 
 #include <glm/glm.hpp>
 
+bool hit_sphere(const glm::vec3 &center, float radius, const Ray &ray) {
+  const auto oc = center - ray.origin();
+  const auto a = glm::dot(ray.direction(), ray.direction());
+  const auto b = -2.0f * glm::dot(ray.direction(), oc),
+             c = glm::dot(oc, oc) - radius * radius,
+             discriminant = b * b - 4 * a * c;
+  return discriminant >= 0;
+}
+
 glm::vec3 ray_color(const Ray &r) {
+  if (hit_sphere({0, 0, -1}, 0.5, r))
+    return {1, 0, 0};
   const auto unit_direction = glm::normalize(r.direction());
   const auto a = 0.5f * (unit_direction[1] + 1.0f);
   return (1.0f - a) * glm::vec3(1, 1, 1) + a * glm::vec3(0.5, 0.7, 1.0);
