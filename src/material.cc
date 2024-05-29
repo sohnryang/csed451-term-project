@@ -22,3 +22,12 @@ Lambertian::scatter(const Ray &ray_in, const HitRecord &record) const {
   const auto scattered = Ray(record.point, scatter_direction);
   return std::make_pair(scattered, _albedo);
 }
+
+Metal::Metal(const glm::vec3 &albedo) : _albedo(albedo) {}
+
+std::optional<std::pair<Ray, glm::vec3>>
+Metal::scatter(const Ray &ray_in, const HitRecord &record) const {
+  const auto reflected = glm::reflect(ray_in.direction(), record.normal);
+  const auto scattered = Ray(record.point, reflected);
+  return std::make_pair(scattered, _albedo);
+}
