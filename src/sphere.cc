@@ -1,15 +1,19 @@
 #include "sphere.hh"
+
 #include "hittable.hh"
 #include "interval.hh"
+#include "material.hh"
 #include "ray.hh"
 
 #include <cmath>
+#include <memory>
 #include <optional>
 
 #include <glm/glm.hpp>
 
-Sphere::Sphere(const glm::vec3 &center, float radius)
-    : _center(center), _radius(radius) {}
+Sphere::Sphere(const glm::vec3 &center, float radius,
+               std::shared_ptr<Material> material)
+    : _center(center), _radius(radius), _material(material) {}
 
 std::optional<HitRecord> Sphere::hit(const Ray &ray, Interval ray_t) const {
   const auto oc = _center - ray.origin();
@@ -31,5 +35,5 @@ std::optional<HitRecord> Sphere::hit(const Ray &ray, Interval ray_t) const {
 
   const auto point = ray.at(root);
   const auto outward_normal = (point - _center) / _radius;
-  return HitRecord(ray, outward_normal, root);
+  return HitRecord(ray, outward_normal, root, _material);
 }

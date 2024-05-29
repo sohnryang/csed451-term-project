@@ -87,7 +87,12 @@ glm::vec3 Camera::_ray_color(const Ray &ray, const Hittable &world,
   if (record.has_value()) {
     const auto direction =
         random_on_hemisphere(record->normal) + record->normal;
-    return 0.5f * _ray_color({record->point, direction}, world, depth + 1);
+    const auto material_hit = record->material->scatter(ray, *record);
+    if (material_hit.has_value()) {
+      const auto &[scattered, attenuation] = *material_hit;
+      return _ray_color(scattered, world, depth + 1) * attenuation;
+    }
+    return {0, 0, 0};
   }
 
   const auto unit_direction = glm::normalize(ray.direction());
