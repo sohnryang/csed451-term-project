@@ -82,7 +82,8 @@ glm::vec3 Camera::_ray_color(const Ray &ray, const Hittable &world,
 
   const auto record = world.hit(ray, Interval(0.001f, INFINITY));
   if (record.has_value()) {
-    const auto direction = random_on_hemisphere(record->normal);
+    const auto direction =
+        random_on_hemisphere(record->normal) + record->normal;
     return 0.5f * _ray_color({record->point, direction}, world, depth + 1);
   }
 
