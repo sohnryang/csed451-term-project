@@ -31,9 +31,10 @@ Camera::Camera(float aspect_ratio, int image_width)
 }
 
 void Camera::_write_color(std::ostream &out, const glm::vec3 &color) const {
-  const auto r = static_cast<int>(255.999f * color[0]),
-             g = static_cast<int>(255.999f * color[1]),
-             b = static_cast<int>(255.999f * color[2]);
+  static constexpr auto color_scale_factor = 255.999f;
+  const auto r = static_cast<int>(color_scale_factor * color[0]),
+             g = static_cast<int>(color_scale_factor * color[1]),
+             b = static_cast<int>(color_scale_factor * color[2]);
   out << r << " " << g << " " << b << "\n";
 }
 
