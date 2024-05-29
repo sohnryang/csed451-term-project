@@ -9,10 +9,11 @@
 #include <iostream>
 #include <string>
 
-Camera::Camera() : Camera(16.0f / 9.0f, 400) {}
+Camera::Camera() : Camera(16.0f / 9.0f, 400, 10) {}
 
-Camera::Camera(float aspect_ratio, int image_width)
-    : _aspect_ratio(aspect_ratio), _image_width(image_width) {
+Camera::Camera(float aspect_ratio, int image_width, int samples_per_pixel)
+    : _aspect_ratio(aspect_ratio), _image_width(image_width),
+      _samples_per_pixel(samples_per_pixel) {
   _image_height = std::max(static_cast<int>(image_width / aspect_ratio), 1);
   _center = glm::vec3(0, 0, 0);
 
@@ -31,10 +32,10 @@ Camera::Camera(float aspect_ratio, int image_width)
 }
 
 void Camera::_write_color(std::ostream &out, const glm::vec3 &color) const {
-  static constexpr auto color_scale_factor = 255.999f;
-  const auto r = static_cast<int>(color_scale_factor * color[0]),
-             g = static_cast<int>(color_scale_factor * color[1]),
-             b = static_cast<int>(color_scale_factor * color[2]);
+  static const auto intensity_interval = Interval(0.0f, 0.999f);
+  const auto r = static_cast<int>(256 * intensity_interval.clamp(color[0])),
+             g = static_cast<int>(256 * intensity_interval.clamp(color[1])),
+             b = static_cast<int>(256 * intensity_interval.clamp(color[2]));
   out << r << " " << g << " " << b << "\n";
 }
 
@@ -46,13 +47,17 @@ void Camera::render_to_file(const std::string &filename,
     std::clog << "\rRemaining scanlines: " << (_image_height - j) << ' '
               << std::flush;
     for (int i = 0; i < _image_width; i++) {
-      const auto pixel_center = _pixel00_location +
-                                static_cast<float>(i) * _pixel_delta_u +
-                                static_cast<float>(j) * _pixel_delta_v;
-      const auto ray_direction = pixel_center - _center;
-      Ray r(_center, ray_direction);
-      const auto pixel_color = ray_color(r, world);
-      _write_color(outfile, pixel_color);
+      auto pixel_color = glm::vec3(0, 0, 0);
+      for (int sample = 0; sample < _samples_per_pixel; sample++) {
+        const auto pixel_center = _pixel00_location +
+                                  static_cast<float>(i) * _pixel_delta_u +
+                                  static_cast<float>(j) * _pixel_delta_v;
+        const auto ray_direction = pixel_center - _center;
+        Ray r(_center, ray_direction);
+        pixel_color += ray_color(r, world);
+      }
+      _write_color(outfile,
+                   pixel_color / static_cast<float>(_samples_per_pixel));
     }
   }
   std::clog << "\rDone.                 \n";
