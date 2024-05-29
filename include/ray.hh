@@ -8,6 +8,11 @@ private:
   glm::vec3 _direction;
 
 public:
+  Ray(const Ray &) = default;
+  Ray(Ray &&) = default;
+  Ray &operator=(const Ray &) = default;
+  Ray &operator=(Ray &&) = default;
+
   Ray();
   Ray(const glm::vec3 origin, const glm::vec3 direction);
 
