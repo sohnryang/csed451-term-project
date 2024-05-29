@@ -14,6 +14,7 @@ struct Interval {
   float length() const;
   bool contains(float x) const;
   bool surrounds(float x) const;
+  float clamp(float x) const;
 
   static const Interval empty, universe;
 };
