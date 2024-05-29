@@ -13,6 +13,7 @@ add_executable(
   sphere.cc
   hittable.cc
   hittable_list.cc
-  camera.cc)
+  camera.cc
+  material.cc)
 target_include_directories(path_tracer PRIVATE "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(path_tracer PRIVATE glm::glm)
