@@ -7,6 +7,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <random>
 #include <string>
 
 Camera::Camera() : Camera(16.0f / 9.0f, 400, 10) {}
@@ -39,22 +40,34 @@ void Camera::_write_color(std::ostream &out, const glm::vec3 &color) const {
   out << r << " " << g << " " << b << "\n";
 }
 
+glm::vec3 Camera::_sample_square() const {
+  static std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+  static std::mt19937 gen;
+  return {dist(gen) - 1.0f, dist(gen) - 1.0f, 0};
+}
+
+Ray Camera::_ray_at_pixel(int y, int x) const {
+  const auto offset = _sample_square();
+  const auto pixel_sample =
+                 _pixel00_location +
+                 (static_cast<float>(x) + offset[0]) * _pixel_delta_u +
+                 (static_cast<float>(y) + offset[1]) * _pixel_delta_v,
+             origin = _center, direction = pixel_sample - origin;
+  return {origin, direction};
+}
+
 void Camera::render_to_file(const std::string &filename,
                             const Hittable &world) {
   std::ofstream outfile(filename);
   outfile << "P3\n" << _image_width << " " << _image_height << "\n255\n";
-  for (int j = 0; j < _image_height; j++) {
-    std::clog << "\rRemaining scanlines: " << (_image_height - j) << ' '
+  for (int y = 0; y < _image_height; y++) {
+    std::clog << "\rRemaining scanlines: " << (_image_height - y) << ' '
               << std::flush;
-    for (int i = 0; i < _image_width; i++) {
+    for (int x = 0; x < _image_width; x++) {
       auto pixel_color = glm::vec3(0, 0, 0);
       for (int sample = 0; sample < _samples_per_pixel; sample++) {
-        const auto pixel_center = _pixel00_location +
-                                  static_cast<float>(i) * _pixel_delta_u +
-                                  static_cast<float>(j) * _pixel_delta_v;
-        const auto ray_direction = pixel_center - _center;
-        Ray r(_center, ray_direction);
-        pixel_color += _ray_color(r, world);
+        const auto ray = _ray_at_pixel(y, x);
+        pixel_color += _ray_color(ray, world);
       }
       _write_color(outfile,
                    pixel_color / static_cast<float>(_samples_per_pixel));

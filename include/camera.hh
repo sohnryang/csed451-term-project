@@ -23,6 +23,10 @@ private:
 
   glm::vec3 _ray_color(const Ray &ray, const Hittable &world) const;
 
+  glm::vec3 _sample_square() const;
+
+  Ray _ray_at_pixel(int y, int x) const;
+
 public:
   Camera();
   Camera(const Camera &) = default;
