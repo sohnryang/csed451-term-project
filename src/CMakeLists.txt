@@ -5,6 +5,7 @@ FetchContent_Declare(
   GIT_TAG 1.0.1)
 FetchContent_MakeAvailable(glm)
 
-add_executable(path_tracer main.cc ray.cc)
+add_executable(path_tracer main.cc ray.cc interval.cc sphere.cc hittable.cc
+                           hittable_list.cc)
 target_include_directories(path_tracer PRIVATE "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(path_tracer PRIVATE glm::glm)
