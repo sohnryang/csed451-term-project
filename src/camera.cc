@@ -75,9 +75,11 @@ void Camera::render_to_file(const std::string &filename,
 }
 
 glm::vec3 Camera::_ray_color(const Ray &ray, const Hittable &world) const {
-  const auto record = world.hit(ray, Interval(0, INFINITY));
-  if (record.has_value())
-    return 0.5f * (record->normal + glm::vec3(1, 1, 1));
+  const auto record = world.hit(ray, Interval(0.001f, INFINITY));
+  if (record.has_value()) {
+    const auto direction = random_on_hemisphere(record->normal);
+    return 0.5f * _ray_color({record->point, direction}, world);
+  }
 
   const auto unit_direction = glm::normalize(ray.direction());
   const auto a = 0.5f * (unit_direction[1] + 1.0f);
