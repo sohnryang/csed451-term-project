@@ -10,7 +10,7 @@
 #include <iostream>
 #include <string>
 
-Camera::Camera() : Camera(16.0f / 9.0f, 400, 10, 10) {}
+Camera::Camera() : Camera(16.0f / 9.0f, 400, 100, 50) {}
 
 Camera::Camera(float aspect_ratio, int image_width, int samples_per_pixel,
                int max_depth)
