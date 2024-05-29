@@ -3,11 +3,11 @@
 #include "hittable.hh"
 #include "interval.hh"
 #include "ray.hh"
+#include "utils.hh"
 
 #include <cmath>
 #include <fstream>
 #include <iostream>
-#include <random>
 #include <string>
 
 Camera::Camera() : Camera(16.0f / 9.0f, 400, 10) {}
@@ -41,9 +41,7 @@ void Camera::_write_color(std::ostream &out, const glm::vec3 &color) const {
 }
 
 glm::vec3 Camera::_sample_square() const {
-  static std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-  static std::mt19937 gen;
-  return {dist(gen) - 1.0f, dist(gen) - 1.0f, 0};
+  return {random_float() - 1.0f, random_float() - 1.0f, 0};
 }
 
 Ray Camera::_ray_at_pixel(int y, int x) const {
