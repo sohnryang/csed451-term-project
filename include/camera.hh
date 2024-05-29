@@ -21,6 +21,8 @@ private:
 
   void _write_color(std::ostream &out, const glm::vec3 &color) const;
 
+  glm::vec3 _ray_color(const Ray &ray, const Hittable &world) const;
+
 public:
   Camera();
   Camera(const Camera &) = default;
@@ -31,6 +33,4 @@ public:
   Camera(float aspect_ratio, int image_width, int samples_per_pixel);
 
   void render_to_file(const std::string &filename, const Hittable &world);
-
-  glm::vec3 ray_color(const Ray &ray, const Hittable &world) const;
 };

@@ -54,7 +54,7 @@ void Camera::render_to_file(const std::string &filename,
                                   static_cast<float>(j) * _pixel_delta_v;
         const auto ray_direction = pixel_center - _center;
         Ray r(_center, ray_direction);
-        pixel_color += ray_color(r, world);
+        pixel_color += _ray_color(r, world);
       }
       _write_color(outfile,
                    pixel_color / static_cast<float>(_samples_per_pixel));
@@ -63,7 +63,7 @@ void Camera::render_to_file(const std::string &filename,
   std::clog << "\rDone.                 \n";
 }
 
-glm::vec3 Camera::ray_color(const Ray &ray, const Hittable &world) const {
+glm::vec3 Camera::_ray_color(const Ray &ray, const Hittable &world) const {
   const auto record = world.hit(ray, Interval(0, INFINITY));
   if (record.has_value())
     return 0.5f * (record->normal + glm::vec3(1, 1, 1));
