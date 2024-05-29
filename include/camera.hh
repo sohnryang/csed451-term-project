@@ -14,6 +14,7 @@ private:
   int _image_width;
   int _samples_per_pixel;
   int _image_height;
+  int _max_depth;
   glm::vec3 _center;
   glm::vec3 _pixel00_location;
   glm::vec3 _pixel_delta_u;
@@ -21,7 +22,8 @@ private:
 
   void _write_color(std::ostream &out, const glm::vec3 &color) const;
 
-  glm::vec3 _ray_color(const Ray &ray, const Hittable &world) const;
+  glm::vec3 _ray_color(const Ray &ray, const Hittable &world,
+                       int depth = 0) const;
 
   glm::vec3 _sample_square() const;
 
@@ -34,7 +36,8 @@ public:
   Camera &operator=(const Camera &) = default;
   Camera &operator=(Camera &&) = default;
 
-  Camera(float aspect_ratio, int image_width, int samples_per_pixel);
+  Camera(float aspect_ratio, int image_width, int samples_per_pixel,
+         int max_depth);
 
   void render_to_file(const std::string &filename, const Hittable &world);
 };

@@ -10,11 +10,12 @@
 #include <iostream>
 #include <string>
 
-Camera::Camera() : Camera(16.0f / 9.0f, 400, 10) {}
+Camera::Camera() : Camera(16.0f / 9.0f, 400, 10, 10) {}
 
-Camera::Camera(float aspect_ratio, int image_width, int samples_per_pixel)
+Camera::Camera(float aspect_ratio, int image_width, int samples_per_pixel,
+               int max_depth)
     : _aspect_ratio(aspect_ratio), _image_width(image_width),
-      _samples_per_pixel(samples_per_pixel) {
+      _samples_per_pixel(samples_per_pixel), _max_depth(max_depth) {
   _image_height = std::max(static_cast<int>(image_width / aspect_ratio), 1);
   _center = glm::vec3(0, 0, 0);
 
@@ -74,11 +75,15 @@ void Camera::render_to_file(const std::string &filename,
   std::clog << "\rDone.                 \n";
 }
 
-glm::vec3 Camera::_ray_color(const Ray &ray, const Hittable &world) const {
+glm::vec3 Camera::_ray_color(const Ray &ray, const Hittable &world,
+                             int depth) const {
+  if (depth >= _max_depth)
+    return {0, 0, 0};
+
   const auto record = world.hit(ray, Interval(0.001f, INFINITY));
   if (record.has_value()) {
     const auto direction = random_on_hemisphere(record->normal);
-    return 0.5f * _ray_color({record->point, direction}, world);
+    return 0.5f * _ray_color({record->point, direction}, world, depth + 1);
   }
 
   const auto unit_direction = glm::normalize(ray.direction());
