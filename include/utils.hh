@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <random>
 
 #include <glm/glm.hpp>
@@ -36,4 +37,10 @@ inline glm::vec3 random_on_hemisphere(const glm::vec3 &normal) {
     return on_unit_sphere;
   else
     return -on_unit_sphere;
+}
+
+inline float linear_to_gamma(float linear_component) {
+  if (linear_component > 0)
+    return std::sqrt(linear_component);
+  return 0;
 }

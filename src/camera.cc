@@ -35,9 +35,12 @@ Camera::Camera(float aspect_ratio, int image_width, int samples_per_pixel,
 
 void Camera::_write_color(std::ostream &out, const glm::vec3 &color) const {
   static const auto intensity_interval = Interval(0.0f, 0.999f);
-  const auto r = static_cast<int>(256 * intensity_interval.clamp(color[0])),
-             g = static_cast<int>(256 * intensity_interval.clamp(color[1])),
-             b = static_cast<int>(256 * intensity_interval.clamp(color[2]));
+  const auto r = static_cast<int>(
+                 256 * intensity_interval.clamp(linear_to_gamma(color[0]))),
+             g = static_cast<int>(
+                 256 * intensity_interval.clamp(linear_to_gamma(color[1]))),
+             b = static_cast<int>(
+                 256 * intensity_interval.clamp(linear_to_gamma(color[2])));
   out << r << " " << g << " " << b << "\n";
 }
 
