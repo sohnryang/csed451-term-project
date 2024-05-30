@@ -14,31 +14,37 @@
 
 Camera::Camera()
     : Camera(16.0f / 9.0f, 400, 100, 50, 90.0f, {0, 0, 0}, {0, 0, -1},
-             {0, 1, 0}) {}
+             {0, 1, 0}, 0.0f, 10.0f) {}
 
 Camera::Camera(float aspect_ratio, int image_width, int samples_per_pixel,
                int max_depth, float vfov, const glm::vec3 &eye,
-               const glm::vec3 &center, const glm::vec3 &up)
+               const glm::vec3 &center, const glm::vec3 &up,
+               float defocus_angle, float focus_dist)
     : _aspect_ratio(aspect_ratio), _image_width(image_width),
       _samples_per_pixel(samples_per_pixel), _max_depth(max_depth), _vfov(vfov),
-      _eye(eye), _center(center), _up(up) {
+      _defocus_angle(defocus_angle), _focus_dist(focus_dist), _eye(eye),
+      _center(center), _up(up) {
   _image_height = std::max(static_cast<int>(image_width / aspect_ratio), 1);
 
-  const auto focal_length = glm::distance(_eye, _center),
-             theta = glm::radians(_vfov), h = std::tan(theta / 2),
-             viewport_height = 2.0f * h * focal_length,
+  const auto theta = glm::radians(_vfov), h = std::tan(theta / 2),
+             viewport_height = 2.0f * h * _focus_dist,
              viewport_width =
                  viewport_height *
                  (static_cast<float>(_image_width) / _image_height);
   const auto w = glm::normalize(_eye - _center),
              u = glm::normalize(glm::cross(_up, w)), v = glm::cross(w, u),
              viewport_u = viewport_width * u, viewport_v = -viewport_height * v,
-             viewport_upper_left =
-                 _center - viewport_u / 2.0f - viewport_v / 2.0f;
+             viewport_upper_left = _eye - (focus_dist * w) - viewport_u / 2.0f -
+                                   viewport_v / 2.0f;
   _pixel_delta_u = viewport_u / static_cast<float>(_image_width);
   _pixel_delta_v = viewport_v / static_cast<float>(_image_height);
   _pixel00_location =
       viewport_upper_left + 0.5f * (_pixel_delta_u + _pixel_delta_v);
+
+  const auto defocus_radius =
+      _focus_dist * tan(glm::radians(_defocus_angle / 2));
+  _defocus_disk_u = defocus_radius * u;
+  _defocus_disk_v = defocus_radius * v;
 }
 
 void Camera::_write_color(std::ostream &out, const glm::vec3 &color) const {
@@ -56,13 +62,19 @@ glm::vec3 Camera::_sample_square() const {
   return {random_float() - 1.0f, random_float() - 1.0f, 0};
 }
 
+glm::vec3 Camera::_defocus_disk_sample() const {
+  const auto p = random_in_unit_disk();
+  return _eye + p[0] * _defocus_disk_u + p[1] * _defocus_disk_v;
+}
+
 Ray Camera::_ray_at_pixel(int y, int x) const {
   const auto offset = _sample_square();
   const auto pixel_sample =
                  _pixel00_location +
                  (static_cast<float>(x) + offset[0]) * _pixel_delta_u +
                  (static_cast<float>(y) + offset[1]) * _pixel_delta_v,
-             origin = _eye, direction = pixel_sample - origin;
+             origin = _defocus_angle <= 0 ? _eye : _defocus_disk_sample(),
+             direction = pixel_sample - origin;
   return {origin, direction};
 }
 

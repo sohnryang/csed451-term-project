@@ -39,6 +39,14 @@ inline glm::vec3 random_on_hemisphere(const glm::vec3 &normal) {
     return -on_unit_sphere;
 }
 
+inline glm::vec3 random_in_unit_disk() {
+  while (true) {
+    const auto v = glm::vec3(random_float(), random_float(), 0);
+    if (glm::dot(v, v) < 1)
+      return v;
+  }
+}
+
 inline float linear_to_gamma(float linear_component) {
   if (linear_component > 0)
     return std::sqrt(linear_component);
