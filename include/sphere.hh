@@ -10,13 +10,11 @@
 
 #include <glm/glm.hpp>
 
-class Sphere : public Hittable {
-private:
-  glm::vec3 _center;
-  float _radius;
-  std::shared_ptr<Material> _material;
+struct Sphere : public Hittable {
+  glm::vec3 center;
+  float radius;
+  std::shared_ptr<Material> material;
 
-public:
   Sphere(const glm::vec3 &center, float radius,
          std::shared_ptr<Material> material);
 

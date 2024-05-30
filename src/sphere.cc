@@ -13,13 +13,13 @@
 
 Sphere::Sphere(const glm::vec3 &center, float radius,
                std::shared_ptr<Material> material)
-    : _center(center), _radius(radius), _material(material) {}
+    : center(center), radius(radius), material(material) {}
 
 std::optional<HitRecord> Sphere::hit(const Ray &ray, Interval ray_t) const {
-  const auto oc = _center - ray.origin();
+  const auto oc = center - ray.origin();
   const auto a = glm::dot(ray.direction(), ray.direction()),
              h = glm::dot(ray.direction(), oc),
-             c = glm::dot(oc, oc) - _radius * _radius,
+             c = glm::dot(oc, oc) - radius * radius,
              discriminant = h * h - a * c;
   if (discriminant < 0)
     return std::nullopt;
@@ -34,6 +34,6 @@ std::optional<HitRecord> Sphere::hit(const Ray &ray, Interval ray_t) const {
   }
 
   const auto point = ray.at(root);
-  const auto outward_normal = (point - _center) / _radius;
-  return HitRecord(ray, outward_normal, root, _material);
+  const auto outward_normal = (point - center) / radius;
+  return HitRecord(ray, outward_normal, root, material);
 }
