@@ -23,11 +23,17 @@ Lambertian::scatter(const Ray &ray_in, const HitRecord &record) const {
   return std::make_pair(scattered, _albedo);
 }
 
-Metal::Metal(const glm::vec3 &albedo) : _albedo(albedo) {}
+Metal::Metal(const glm::vec3 &albedo, float fuzz)
+    : _albedo(albedo), _fuzz(fuzz) {}
 
 std::optional<std::pair<Ray, glm::vec3>>
 Metal::scatter(const Ray &ray_in, const HitRecord &record) const {
-  const auto reflected = glm::reflect(ray_in.direction(), record.normal);
+  const auto reflected =
+      glm::normalize(glm::reflect(ray_in.direction(), record.normal)) +
+      (_fuzz * random_unit_vector());
   const auto scattered = Ray(record.point, reflected);
-  return std::make_pair(scattered, _albedo);
+  if (glm::dot(scattered.direction(), record.normal) > 0)
+    return std::make_pair(scattered, _albedo);
+  else
+    return {};
 }

@@ -37,6 +37,7 @@ public:
 class Metal : public Material {
 private:
   glm::vec3 _albedo;
+  float _fuzz;
 
 public:
   Metal() = default;
@@ -45,7 +46,7 @@ public:
   Metal &operator=(const Metal &) = default;
   Metal &operator=(Metal &&) = default;
 
-  Metal(const glm::vec3 &albedo);
+  Metal(const glm::vec3 &albedo, float fuzz);
 
   std::optional<std::pair<Ray, glm::vec3>>
   scatter(const Ray &ray_in, const HitRecord &record) const override;
