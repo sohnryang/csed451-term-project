@@ -15,6 +15,7 @@ private:
   int _samples_per_pixel;
   int _image_height;
   int _max_depth;
+  float _vfov;
   glm::vec3 _center;
   glm::vec3 _pixel00_location;
   glm::vec3 _pixel_delta_u;
@@ -37,7 +38,7 @@ public:
   Camera &operator=(Camera &&) = default;
 
   Camera(float aspect_ratio, int image_width, int samples_per_pixel,
-         int max_depth);
+         int max_depth, float vfov);
 
   void render_to_file(const std::string &filename, const Hittable &world);
 };

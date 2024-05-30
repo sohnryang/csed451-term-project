@@ -10,16 +10,18 @@
 #include <iostream>
 #include <string>
 
-Camera::Camera() : Camera(16.0f / 9.0f, 400, 100, 50) {}
+Camera::Camera() : Camera(16.0f / 9.0f, 400, 100, 50, 90.0f) {}
 
 Camera::Camera(float aspect_ratio, int image_width, int samples_per_pixel,
-               int max_depth)
+               int max_depth, float vfov)
     : _aspect_ratio(aspect_ratio), _image_width(image_width),
-      _samples_per_pixel(samples_per_pixel), _max_depth(max_depth) {
+      _samples_per_pixel(samples_per_pixel), _max_depth(max_depth),
+      _vfov(vfov) {
   _image_height = std::max(static_cast<int>(image_width / aspect_ratio), 1);
   _center = glm::vec3(0, 0, 0);
 
-  const auto focal_length = 1.0f, viewport_height = 2.0f,
+  const auto focal_length = 1.0f, theta = glm::radians(_vfov),
+             h = std::tan(theta / 2), viewport_height = 2.0f * h * focal_length,
              viewport_width =
                  viewport_height *
                  (static_cast<float>(_image_width) / _image_height);
