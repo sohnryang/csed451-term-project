@@ -15,6 +15,12 @@ struct Sphere : public Hittable {
   float radius;
   std::shared_ptr<Material> material;
 
+  Sphere() = default;
+  Sphere(const Sphere &) = default;
+  Sphere(Sphere &&) = default;
+  Sphere &operator=(const Sphere &) = default;
+  Sphere &operator=(Sphere &&) = default;
+
   Sphere(const glm::vec3 &center, float radius,
          std::shared_ptr<Material> material);
 
