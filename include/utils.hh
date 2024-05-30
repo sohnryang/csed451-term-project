@@ -19,6 +19,10 @@ inline glm::vec3 random_vec() {
   return {random_float(), random_float(), random_float()};
 }
 
+inline glm::vec3 random_vec(float lo, float hi) {
+  return {random_float(lo, hi), random_float(lo, hi), random_float(lo, hi)};
+}
+
 inline glm::vec3 random_in_unit_sphere() {
   while (true) {
     const auto v = random_vec();
