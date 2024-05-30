@@ -10,25 +10,31 @@
 #include <iostream>
 #include <string>
 
-Camera::Camera() : Camera(16.0f / 9.0f, 400, 100, 50, 90.0f) {}
+#include <glm/glm.hpp>
+
+Camera::Camera()
+    : Camera(16.0f / 9.0f, 400, 100, 50, 90.0f, {0, 0, 0}, {0, 0, -1},
+             {0, 1, 0}) {}
 
 Camera::Camera(float aspect_ratio, int image_width, int samples_per_pixel,
-               int max_depth, float vfov)
+               int max_depth, float vfov, const glm::vec3 &eye,
+               const glm::vec3 &center, const glm::vec3 &up)
     : _aspect_ratio(aspect_ratio), _image_width(image_width),
-      _samples_per_pixel(samples_per_pixel), _max_depth(max_depth),
-      _vfov(vfov) {
+      _samples_per_pixel(samples_per_pixel), _max_depth(max_depth), _vfov(vfov),
+      _eye(eye), _center(center), _up(up) {
   _image_height = std::max(static_cast<int>(image_width / aspect_ratio), 1);
-  _center = glm::vec3(0, 0, 0);
 
-  const auto focal_length = 1.0f, theta = glm::radians(_vfov),
-             h = std::tan(theta / 2), viewport_height = 2.0f * h * focal_length,
+  const auto focal_length = glm::distance(_eye, _center),
+             theta = glm::radians(_vfov), h = std::tan(theta / 2),
+             viewport_height = 2.0f * h * focal_length,
              viewport_width =
                  viewport_height *
                  (static_cast<float>(_image_width) / _image_height);
-  const auto viewport_u = glm::vec3(viewport_width, 0, 0),
-             viewport_v = glm::vec3(0, -viewport_height, 0),
-             viewport_upper_left = _center - glm::vec3(0, 0, focal_length) -
-                                   viewport_u / 2.0f - viewport_v / 2.0f;
+  const auto w = glm::normalize(_eye - _center),
+             u = glm::normalize(glm::cross(_up, w)), v = glm::cross(w, u),
+             viewport_u = viewport_width * u, viewport_v = -viewport_height * v,
+             viewport_upper_left =
+                 _center - viewport_u / 2.0f - viewport_v / 2.0f;
   _pixel_delta_u = viewport_u / static_cast<float>(_image_width);
   _pixel_delta_v = viewport_v / static_cast<float>(_image_height);
   _pixel00_location =
@@ -56,7 +62,7 @@ Ray Camera::_ray_at_pixel(int y, int x) const {
                  _pixel00_location +
                  (static_cast<float>(x) + offset[0]) * _pixel_delta_u +
                  (static_cast<float>(y) + offset[1]) * _pixel_delta_v,
-             origin = _center, direction = pixel_sample - origin;
+             origin = _eye, direction = pixel_sample - origin;
   return {origin, direction};
 }
 
