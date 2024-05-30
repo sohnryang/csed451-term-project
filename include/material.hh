@@ -51,3 +51,22 @@ public:
   std::optional<std::pair<Ray, glm::vec3>>
   scatter(const Ray &ray_in, const HitRecord &record) const override;
 };
+
+class Dielectric : public Material {
+private:
+  float _refraction_index;
+
+  float _reflectance(float cosine, float refraction_index) const;
+
+public:
+  Dielectric() = default;
+  Dielectric(const Dielectric &) = default;
+  Dielectric(Dielectric &&) = default;
+  Dielectric &operator=(const Dielectric &) = default;
+  Dielectric &operator=(Dielectric &&) = default;
+
+  Dielectric(float refraction_index);
+
+  std::optional<std::pair<Ray, glm::vec3>>
+  scatter(const Ray &ray_in, const HitRecord &record) const override;
+};
