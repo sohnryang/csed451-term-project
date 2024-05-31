@@ -74,8 +74,18 @@ int main() {
   world.hittables.push_back(std::make_shared<Disk>(
       destination_center, destination_normal, 1.0f, destination_material));
 
-  const CameraConfig config = {16.0f / 9.0f, 400,       500,       50,   20,
-                               {12, 2, 3},   {0, 0, 0}, {0, 1, 0}, 0.6f, 10.0f};
+  const CameraConfig config = {
+      .aspect_ratio = 16.0f / 9.0f,
+      .image_width = 400,
+      .samples_per_pixel = 500,
+      .max_depth = 50,
+      .vfov = 20,
+      .eye = {12, 2, 3},
+      .center = {0, 0, 0},
+      .up = {0, 1, 0},
+      .defocus_angle = 0.6f,
+      .focus_dist = 10.0f,
+  };
   Camera cam(config);
 
   cam.render_to_file("out.ppm", world);
