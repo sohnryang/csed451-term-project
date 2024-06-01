@@ -6,8 +6,8 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(glm)
 
 add_executable(
-  path_tracer
-  main.cc
+  cpu_tracer
+  cpu_tracer.cc
   ray.cc
   interval.cc
   sphere.cc
