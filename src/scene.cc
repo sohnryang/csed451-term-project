@@ -31,9 +31,8 @@ gpu::Material gpu::Material::from_disk_pair(
       throw std::invalid_argument("invalid angle");
   }
 
-  return {
-      .kind = gpu::MaterialKind::PORTAL,
-      .mat_parameters = {translate_mat_before, translate_mat_after,
-                         rotation_mat},
-  };
+  return {.kind = gpu::MaterialKind::PORTAL,
+          .translation_mat1 = translate_mat_before,
+          .translation_mat2 = translate_mat_after,
+          .rotation_mat = rotation_mat};
 }

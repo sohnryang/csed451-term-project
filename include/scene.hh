@@ -16,11 +16,17 @@ struct Hittable {
   alignas(4) std::uint32_t material_index;
 };
 
+struct Color {
+  alignas(16) glm::vec3 color;
+};
+
 struct Material {
   alignas(4) std::uint32_t kind;
-  alignas(16) glm::vec3 colors[2];
+  alignas(16) glm::vec3 color;
   alignas(4) float parameter;
-  alignas(16) glm::mat4 mat_parameters[3];
+  alignas(16) glm::mat4 translation_mat1;
+  alignas(16) glm::mat4 translation_mat2;
+  alignas(16) glm::mat4 rotation_mat;
 
   static Material from_disk_pair(const glm::vec3 &source_center,
                                  const glm::vec3 &source_normal,

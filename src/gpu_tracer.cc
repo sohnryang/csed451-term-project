@@ -11,7 +11,7 @@ int main() {
   std::vector<gpu::Material> materials;
   std::vector<gpu::Hittable> hittables;
   materials.push_back(
-      {.kind = gpu::MaterialKind::LAMBERTIAN, .colors = {{0.5f, 0.5f, 0.5f}}});
+      {.kind = gpu::MaterialKind::LAMBERTIAN, .color = {0.5f, 0.5f, 0.5f}});
 
   for (int a = -11; a < 11; a++) {
     for (int b = -11; b < 11; b++) {
@@ -32,13 +32,13 @@ int main() {
           // diffuse
           const auto albedo = random_vec() * random_vec();
           sphere_material.kind = gpu::MaterialKind::LAMBERTIAN;
-          sphere_material.colors[0] = albedo;
+          sphere_material.color = albedo;
         } else if (choose_mat < 0.95f) {
           // metal
           const auto albedo = random_vec(0.5f, 1);
           const auto fuzz = random_float(0, 0.5f);
           sphere_material.kind = gpu::MaterialKind::METAL;
-          sphere_material.colors[0] = albedo;
+          sphere_material.color = albedo;
           sphere_material.parameter = fuzz;
         } else {
           // glass
@@ -64,7 +64,7 @@ int main() {
 
   gpu::Material material2 = {
       .kind = gpu::MaterialKind::LAMBERTIAN,
-      .colors = {glm::vec3(0.4, 0.2, 0.1)},
+      .color = glm::vec3(0.4, 0.2, 0.1),
   };
   hittables.push_back({
       .kind = gpu::HittableKind::SPHERE,
@@ -76,7 +76,7 @@ int main() {
 
   gpu::Material material3 = {
       .kind = gpu::MaterialKind::METAL,
-      .colors = {glm::vec3(0.7, 0.6, 0.5)},
+      .color = glm::vec3(0.7, 0.6, 0.5),
       .parameter = 0.0f,
   };
   hittables.push_back({
