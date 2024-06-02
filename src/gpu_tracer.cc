@@ -3,9 +3,13 @@
 #include "vulkan_engine.hh"
 
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
 #include <iostream>
+#include <thread>
 #include <vector>
+
+using namespace std::chrono_literals;
 
 int main() {
   std::vector<gpu::Material> materials;
@@ -126,7 +130,7 @@ int main() {
   std::copy(hittables.begin(), hittables.end(), scene.hittables);
   std::copy(materials.begin(), materials.end(), scene.materials);
 
-  const std::uint32_t render_calls = 2000, samples = 10000;
+  const std::uint32_t render_calls = 20, samples = 100;
   Settings settings{.window_height = 1080,
                     .window_width = 1920,
                     .shader_file = "shader.comp.spv",
@@ -146,5 +150,6 @@ int main() {
 
   while (!engine.should_exit()) {
     engine.update();
+    std::this_thread::sleep_for(20ms);
   }
 }

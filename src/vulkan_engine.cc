@@ -15,6 +15,7 @@
 #define VULKAN_HPP_NO_CONSTRUCTORS
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan_to_string.hpp>
 
 #ifdef __APPLE__
 #define VK_ENABLE_BETA_EXTENSIONS
@@ -219,7 +220,7 @@ void VulkanEngine::_create_instance() {
   enabled_extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 #endif
 
-  std::vector<const char *> enabled_layers = {};
+  std::vector<const char *> enabled_layers = {"VK_LAYER_KHRONOS_validation"};
 #ifdef _DEBUG
   enabled_layers.clear();
 #endif
@@ -608,9 +609,24 @@ void VulkanEngine::_create_command_buffer() {
   _command_buffer.end();
 }
 
-void VulkanEngine::_create_fence() { _fence = _device.createFence({}); }
+void VulkanEngine::_create_fence() {
+  _fence = _device.createFence({.flags = vk::FenceCreateFlagBits::eSignaled});
+}
 
-void VulkanEngine::_create_semaphore() { _sema = _device.createSemaphore({}); }
+void VulkanEngine::_create_semaphore() {
+  _sema = _device.createSemaphore({});
+  _render_sema = _device.createSemaphore({});
+}
+
+void VulkanEngine::_recreate_swapchain() {
+  _compute_queue.waitIdle();
+  _present_queue.waitIdle();
+
+  _device.destroyImageView(_swap_chain_image_view);
+  _device.destroySwapchainKHR(_swap_chain);
+
+  _create_swap_chain();
+}
 
 VulkanEngine::VulkanEngine(const Settings &settings, gpu::Scene scene)
     : _settings(settings), _scene(scene) {
@@ -642,6 +658,7 @@ VulkanEngine::~VulkanEngine() {
 
   _device.destroySemaphore(_sema);
   _device.destroyFence(_fence);
+  _device.destroySemaphore(_render_sema);
   _device.destroyPipeline(_pipeline);
   _device.destroyPipelineLayout(_pipeline_layout);
   _device.destroyDescriptorSetLayout(_descriptor_set_layout);
@@ -666,6 +683,8 @@ void VulkanEngine::render(const RenderCallInfo &render_call_info) {
                                std::numeric_limits<std::uint64_t>::max(), _sema)
           .value;
   _device.resetFences(_fence);
+  if (swap_chain_image_index == 1)
+    return;
 
   vk::SubmitInfo submit_info{.commandBufferCount = 1,
                              .pCommandBuffers = &_command_buffer};
@@ -687,8 +706,6 @@ void VulkanEngine::render(const RenderCallInfo &render_call_info) {
       .pImageIndices = &swap_chain_image_index,
   };
   res = _present_queue.presentKHR(present_info);
-  if (res != vk::Result::eSuccess)
-    throw std::runtime_error("Push to present queue failed");
 }
 
 bool VulkanEngine::should_exit() const {
