@@ -273,6 +273,7 @@ void VulkanEngine::_select_phys_device() {
                  _required_device_extensions.end(),
                  std::back_inserter(required_dev_extensions),
                  [](const char *name) { return std::string(name); });
+  std::sort(required_dev_extensions.begin(), required_dev_extensions.end());
 
   for (const auto &dev : physical_devs) {
     auto available_extensions = dev.enumerateDeviceExtensionProperties();
@@ -280,6 +281,8 @@ void VulkanEngine::_select_phys_device() {
     std::transform(available_extensions.begin(), available_extensions.end(),
                    std::back_inserter(available_extension_names),
                    [](const auto &ext) { return ext.extensionName; });
+    std::sort(available_extension_names.begin(),
+              available_extension_names.end());
     std::cout << "Available extensions:";
     for (const auto &ext : available_extension_names)
       std::cout << " " << ext;
