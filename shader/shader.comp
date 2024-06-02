@@ -142,7 +142,8 @@ HitRecord hit_sphere(uint index, Ray ray, float lo, float hi) {
   const vec3 outward_normal = (res.point - sphere.center) / sphere.radius;
   res.front_face = dot(ray.direction, outward_normal) < 0;
   res.normal = res.front_face ? outward_normal : -outward_normal;
-  res.material_index = index;
+  res.material_index = sphere.material_index;
+  res.t = root;
   return res;
 }
 
@@ -167,7 +168,8 @@ HitRecord hit_disk(uint index, Ray ray, float lo, float hi) {
   res.valid = true;
   res.front_face = dot(ray.direction, disk.normal) < 0;
   res.normal = res.front_face ? disk.normal : -disk.normal;
-  res.material_index = index;
+  res.material_index = disk.material_index;
+  res.t = root;
   return res;
 }
 
@@ -214,21 +216,22 @@ ScatterResult scatter_metal(Ray ray, HitRecord record) {
 }
 
 float reflectance(float cosine, float refraction_index) {
-  const float r0 = pow((1 - refraction_index) / (1 + refraction_index), 2.0f);
-  return r0 + (1 - r0) * pow(1 - cosine, 5.0f);
+  const float r0 =
+      pow((1.0f - refraction_index) / (1.0f + refraction_index), 2.0f);
+  return r0 + (1.0f - r0) * pow(1.0f - cosine, 5.0f);
 }
 
 ScatterResult scatter_dielectric(Ray ray, HitRecord record) {
   const Material material = scene.materials[record.material_index];
   const float ri =
-      record.front_face ? 1 / material.parameter : material.parameter;
+      record.front_face ? 1.0f / material.parameter : material.parameter;
   const vec3 unit_direction = normalize(ray.direction);
 
-  const float cos_theta = min(dot(-unit_direction, record.normal), 1),
-              sin_theta = sqrt(1 - cos_theta * cos_theta);
+  const float cos_theta = min(dot(-unit_direction, record.normal), 1.0f),
+              sin_theta = sqrt(1.0f - cos_theta * cos_theta);
 
   vec3 direction;
-  if (ri * sin_theta > 1 || reflectance(cos_theta, ri) > random())
+  if (ri * sin_theta > 1.0f || reflectance(cos_theta, ri) > random())
     direction = reflect(unit_direction, record.normal);
   else {
     const vec3 r_out_perp = ri * (unit_direction + cos_theta * record.normal),
@@ -259,7 +262,7 @@ ScatterResult scatter(uint index, Ray ray, HitRecord record) {
   else if (material.kind == MATERIAL_KIND_METAL)
     return scatter_metal(ray, record);
   else if (material.kind == MATERIAL_KIND_DIELECTRIC)
-    return scatter_metal(ray, record);
+    return scatter_dielectric(ray, record);
   else
     return scatter_portal(ray, record);
 }
@@ -334,12 +337,16 @@ void main() {
       imageLoad(summed_image, ivec2(gl_GlobalInvocationID.xy)).rgb;
   for (uint i = 0; i < samples_per_pass; i++) {
     const Ray ray = get_ray(viewport);
-    summed_pixel += ray_color(ray) / render_call_info.total_render_calls;
+    summed_pixel += ray_color(ray) / render_call_info.total_samples;
   }
+
+  imageStore(summed_image, ivec2(gl_GlobalInvocationID.xy),
+             vec4(summed_pixel, 1));
 
   const vec3 current_color =
       sqrt(summed_pixel * render_call_info.total_samples /
            float((render_call_info.number + 1) * samples_per_pass));
+
   imageStore(render_target, ivec2(gl_GlobalInvocationID.xy),
              vec4(current_color, 1));
 }
