@@ -14,6 +14,12 @@ using namespace std::chrono_literals;
 int main() {
   std::vector<gpu::Material> materials;
   std::vector<gpu::Hittable> hittables;
+  hittables.push_back({
+      .kind = gpu::HittableKind::SPHERE,
+      .center = glm::vec3(0, -1000, 0),
+      .radius = 1000,
+      .material_index = static_cast<uint32_t>(materials.size()),
+  });
   materials.push_back(
       {.kind = gpu::MaterialKind::LAMBERTIAN, .color = {0.5f, 0.5f, 0.5f}});
 
