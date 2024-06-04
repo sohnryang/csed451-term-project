@@ -177,6 +177,7 @@ void VulkanEngine::_destroy_buffer(const VulkanBuffer &buffer) const {
 void VulkanEngine::_create_window() {
   glfwInit();
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
   _window = glfwCreateWindow(_settings.window_width, _settings.window_height,
                              "GPU Tracer", nullptr, nullptr);
 }
