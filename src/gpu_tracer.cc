@@ -147,7 +147,7 @@ int main() {
                     .group_size_x = 16,
                     .group_size_y = 8};
 
-  VulkanEngine engine(settings, scene);
+  VulkanEngine engine(settings);
 
   std::uint32_t i = 0;
   while (!engine.should_exit()) {
@@ -165,6 +165,6 @@ int main() {
 
     ImGui::ShowDemoWindow();
     ImGui::Render();
-    engine.render(info);
+    engine.render(info, scene);
   }
 }

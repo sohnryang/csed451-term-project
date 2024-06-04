@@ -41,7 +41,6 @@ struct VulkanImage {
 class VulkanEngine {
 private:
   Settings _settings;
-  gpu::Scene _scene;
 
   GLFWwindow *_window;
 
@@ -125,6 +124,7 @@ private:
   void _find_queue_families();
   void _create_logical_device();
   void _create_scene_buffer();
+  void _update_scene_buffer(const gpu::Scene &scene);
   void _create_render_call_info_buffer();
   void _update_render_call_info_buffer(const RenderCallInfo &render_call_info);
   void _create_summed_pixel_color_image();
@@ -141,12 +141,12 @@ private:
   void _create_semaphore();
 
 public:
-  VulkanEngine(const Settings &settings, gpu::Scene scene);
+  VulkanEngine(const Settings &settings);
   ~VulkanEngine();
 
   void update();
 
-  void render(const RenderCallInfo &render_call_info);
+  void render(const RenderCallInfo &render_call_info, const gpu::Scene &scene);
 
   [[nodiscard]] bool should_exit() const;
 };

@@ -388,8 +388,11 @@ void VulkanEngine::_create_scene_buffer() {
                                  vk::BufferUsageFlagBits::eUniformBuffer,
                                  vk::MemoryPropertyFlagBits::eHostVisible |
                                      vk::MemoryPropertyFlagBits::eHostCoherent);
+}
+
+void VulkanEngine::_update_scene_buffer(const gpu::Scene &scene) {
   void *data = _device.mapMemory(_scene_buffer.memory, 0, sizeof(gpu::Scene));
-  std::memcpy(data, &_scene, sizeof(gpu::Scene));
+  std::memcpy(data, &scene, sizeof(gpu::Scene));
   _device.unmapMemory(_scene_buffer.memory);
 }
 
@@ -696,8 +699,7 @@ void VulkanEngine::_create_semaphore() {
   _render_sema = _device.createSemaphore({});
 }
 
-VulkanEngine::VulkanEngine(const Settings &settings, gpu::Scene scene)
-    : _settings(settings), _scene(scene) {
+VulkanEngine::VulkanEngine(const Settings &settings) : _settings(settings) {
   _create_window();
   _create_instance();
   _create_surface();
@@ -742,7 +744,8 @@ VulkanEngine::~VulkanEngine() {
 
 void VulkanEngine::update() { glfwPollEvents(); }
 
-void VulkanEngine::render(const RenderCallInfo &render_call_info) {
+void VulkanEngine::render(const RenderCallInfo &render_call_info,
+                          const gpu::Scene &scene) {
   auto res = _device.waitForFences(1, &_fence, true,
                                    std::numeric_limits<std::uint64_t>::max());
   if (res != vk::Result::eSuccess)
@@ -750,6 +753,7 @@ void VulkanEngine::render(const RenderCallInfo &render_call_info) {
   _device.resetFences(_fence);
 
   _update_render_call_info_buffer(render_call_info);
+  _update_scene_buffer(scene);
   _create_command_buffer();
 
   const auto swap_chain_image_result = _device.acquireNextImageKHR(
