@@ -777,6 +777,8 @@ void VulkanEngine::render(const RenderCallInfo &render_call_info) {
       .pSwapchains = &_swap_chain,
       .pImageIndices = &swap_chain_image_index,
   };
+  if (swap_chain_image_index != 0)
+    return;
   res = _present_queue.presentKHR(present_info);
 }
 
