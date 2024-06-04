@@ -13,6 +13,9 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 
+#include <glm/ext/scalar_constants.hpp>
+#include <glm/trigonometric.hpp>
+
 using namespace std::chrono_literals;
 
 int main() {
@@ -128,7 +131,7 @@ int main() {
 
   gpu::Scene scene;
   scene.camera = {
-      .eye = {9, 2, 8},
+      .eye = {0, 2, 12},
       .center = {0, 0, 0},
       .up = {0, 1, 0},
       .vfov = 20,
@@ -150,12 +153,9 @@ int main() {
   VulkanEngine engine(settings);
 
   std::uint32_t i = 0;
+  float pan_angle = 90.0f;
+  bool clear = false;
   while (!engine.should_exit()) {
-    i = std::min(i + 1, render_calls);
-    RenderCallInfo info = {.read_only = i == render_calls,
-                           .number = i,
-                           .total_render_calls = render_calls,
-                           .total_samples = samples};
     std::cout << "Render call #" << i << std::endl;
     engine.update();
 
@@ -163,8 +163,27 @@ int main() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::ShowDemoWindow();
+    ImGui::Begin("Camera Control");
+    ImGui::SliderFloat("Pan Angle", &pan_angle, 0, 360.0f);
+    if (i == render_calls)
+      if (ImGui::Button("Render")) {
+        i = 0;
+        clear = true;
+        scene.camera.eye = {12 * std::cos(glm::radians(pan_angle)), 2,
+                            12 * std::sin(glm::radians(pan_angle))};
+      }
+    ImGui::End();
     ImGui::Render();
+
+    RenderCallInfo info = {.read_only = i == render_calls,
+                           .clear = clear,
+                           .number = i,
+                           .total_render_calls = render_calls,
+                           .total_samples = samples};
     engine.render(info, scene);
+
+    if (!clear)
+      i = std::min(i + 1, render_calls);
+    clear = false;
   }
 }

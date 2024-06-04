@@ -67,7 +67,8 @@ layout(binding = 2) uniform Scene {
 scene;
 
 layout(binding = 3) uniform RenderCallInfo {
-  bool read_only;
+  uint read_only;
+  uint clear;
   uint number;
   uint total_render_calls;
   uint total_samples;
@@ -327,8 +328,15 @@ Ray get_ray(Viewport viewport) {
 
 layout(local_size_x = 16, local_size_y = 8) in;
 void main() {
-  if (render_call_info.read_only)
+  if (render_call_info.read_only != 0)
     return;
+
+  if (render_call_info.clear != 0) {
+    imageStore(summed_image, ivec2(gl_GlobalInvocationID.xy), vec4(0, 0, 0, 1));
+    imageStore(render_target, ivec2(gl_GlobalInvocationID.xy),
+               vec4(0, 0, 0, 1));
+    return;
+  }
 
   const vec2 image_size = vec2(imageSize(render_target));
   const float aspect_ratio = image_size.x / image_size.y;
