@@ -578,7 +578,7 @@ void VulkanEngine::_create_command_buffer() {
                                      _pipeline_layout, 0, descriptorSets,
                                      nullptr);
 
-  vk::ImageMemoryBarrier imageBarriersToGeneral[2] = {
+  vk::ImageMemoryBarrier image_barriers[2] = {
       _image_pipeline_barrier(vk::AccessFlagBits::eNoneKHR,
                               vk::AccessFlagBits::eShaderWrite,
                               vk::ImageLayout::eUndefined,
@@ -592,7 +592,7 @@ void VulkanEngine::_create_command_buffer() {
   _command_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
                                   vk::PipelineStageFlagBits::eComputeShader,
                                   vk::DependencyFlagBits::eByRegion, 0, nullptr,
-                                  0, nullptr, 2, imageBarriersToGeneral);
+                                  0, nullptr, 2, image_barriers);
 
   _command_buffer.dispatch(
       static_cast<uint32_t>(std::ceil(float(_settings.window_width) /
@@ -669,28 +669,32 @@ VulkanEngine::~VulkanEngine() {
 void VulkanEngine::update() { glfwPollEvents(); }
 
 void VulkanEngine::render(const RenderCallInfo &render_call_info) {
-  _update_render_call_info_buffer(render_call_info);
-
-  const auto swap_chain_image_index =
-      _device
-          .acquireNextImageKHR(_swap_chain,
-                               std::numeric_limits<std::uint64_t>::max(), _sema)
-          .value;
-  _device.resetFences(_fence);
-  if (swap_chain_image_index == 1)
-    return;
-
-  vk::SubmitInfo submit_info{.commandBufferCount = 1,
-                             .pCommandBuffers = &_command_buffer};
-  auto res = _compute_queue.submit(1, &submit_info, _fence);
-  if (res != vk::Result::eSuccess)
-    throw std::runtime_error("Submit failed");
-
-  res = _device.waitForFences(1, &_fence, true,
-                              std::numeric_limits<std::uint64_t>::max());
+  auto res = _device.waitForFences(1, &_fence, true,
+                                   std::numeric_limits<std::uint64_t>::max());
   if (res != vk::Result::eSuccess)
     throw std::runtime_error("Fence wait failed");
   _device.resetFences(_fence);
+
+  _update_render_call_info_buffer(render_call_info);
+
+  const auto swap_chain_image_result = _device.acquireNextImageKHR(
+      _swap_chain, std::numeric_limits<std::uint64_t>::max(), _sema);
+  const auto swap_chain_image_index = swap_chain_image_result.value;
+
+  vk::PipelineStageFlags wait_dst_stage[] = {
+      vk::PipelineStageFlagBits::eTopOfPipe};
+  vk::SubmitInfo submit_info{
+      .waitSemaphoreCount = 1,
+      .pWaitSemaphores = &_sema,
+      .pWaitDstStageMask = wait_dst_stage,
+      .commandBufferCount = 1,
+      .pCommandBuffers = &_command_buffer,
+      .signalSemaphoreCount = 1,
+      .pSignalSemaphores = &_sema,
+  };
+  res = _compute_queue.submit(1, &submit_info, _fence);
+  if (res != vk::Result::eSuccess)
+    throw std::runtime_error("Submit failed");
 
   vk::PresentInfoKHR present_info{
       .waitSemaphoreCount = 1,
