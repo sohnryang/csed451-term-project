@@ -78,7 +78,7 @@ int main() {
   };
   hittables.push_back({
       .kind = gpu::HittableKind::SPHERE,
-      .center = {-4, 1, 0},
+      .center = {-2.5, 1, 0},
       .radius = 1.0f,
       .material_index = static_cast<uint32_t>(materials.size()),
   });
@@ -91,16 +91,16 @@ int main() {
   };
   hittables.push_back({
       .kind = gpu::HittableKind::SPHERE,
-      .center = glm::vec3(4, 1, 0),
+      .center = glm::vec3(2.5, 1, 0),
       .radius = 1.0f,
       .material_index = static_cast<uint32_t>(materials.size()),
   });
   materials.push_back(material3);
 
-  const auto source_center = glm::vec3(5, 1, 0),
+  const auto source_center = glm::vec3(3.5, 1, 0),
              source_normal = glm::vec3(-1, 0, 0),
-             destination_center = glm::vec3(0, 1, -2),
-             destination_normal = glm::vec3(0, 0, 1);
+             destination_center = glm::vec3(0, 1, 2),
+             destination_normal = glm::vec3(0, 0, -1);
   const auto source_material = gpu::Material::from_disk_pair(
       source_center, source_normal, destination_center, destination_normal);
   hittables.push_back({
@@ -124,7 +124,7 @@ int main() {
 
   gpu::Scene scene;
   scene.camera = {
-      .eye = {12, 2, 3},
+      .eye = {9, 2, 8},
       .center = {0, 0, 0},
       .up = {0, 1, 0},
       .vfov = 20,

@@ -55,16 +55,16 @@ int main() {
 
   auto material2 = std::make_shared<Lambertian>(glm::vec3(0.4, 0.2, 0.1));
   world.hittables.push_back(
-      make_shared<Sphere>(glm::vec3(-4, 1, 0), 1.0f, material2));
+      make_shared<Sphere>(glm::vec3(-2.5, 1, 0), 1.0f, material2));
 
   auto material3 = std::make_shared<Metal>(glm::vec3(0.7, 0.6, 0.5), 0.0f);
   world.hittables.push_back(
-      std::make_shared<Sphere>(glm::vec3(4, 1, 0), 1.0f, material3));
+      std::make_shared<Sphere>(glm::vec3(2.5, 1, 0), 1.0f, material3));
 
-  const auto source_center = glm::vec3(5, 1, 0),
+  const auto source_center = glm::vec3(3.5, 1, 0),
              source_normal = glm::vec3(-1, 0, 0),
-             destination_center = glm::vec3(0, 1, -2),
-             destination_normal = glm::vec3(0, 0, 1);
+             destination_center = glm::vec3(0, 1, 2),
+             destination_normal = glm::vec3(0, 0, -1);
   auto source_material = std::make_shared<PortalMaterial>(
       source_center, source_normal, destination_center, destination_normal);
   auto destination_material = std::make_shared<PortalMaterial>(
@@ -80,7 +80,7 @@ int main() {
       .samples_per_pixel = 500,
       .max_depth = 50,
       .vfov = 20,
-      .eye = {12, 2, 3},
+      .eye = {9, 2, 8},
       .center = {0, 0, 0},
       .up = {0, 1, 0},
       .defocus_angle = 0.6f,
