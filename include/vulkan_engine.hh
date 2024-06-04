@@ -21,6 +21,7 @@ struct Settings {
 };
 
 struct RenderCallInfo {
+  bool read_only;
   std::uint32_t number;
   std::uint32_t total_render_calls;
   std::uint32_t total_samples;

@@ -149,8 +149,11 @@ int main() {
 
   VulkanEngine engine(settings, scene);
 
-  for (std::uint32_t i = 0; i < render_calls; i++) {
-    RenderCallInfo info = {.number = i,
+  std::uint32_t i = 0;
+  while (!engine.should_exit()) {
+    i = std::min(i + 1, render_calls);
+    RenderCallInfo info = {.read_only = i == render_calls,
+                           .number = i,
                            .total_render_calls = render_calls,
                            .total_samples = samples};
     std::cout << "Render call #" << i << std::endl;
@@ -163,17 +166,5 @@ int main() {
     ImGui::ShowDemoWindow();
     ImGui::Render();
     engine.render(info);
-  }
-
-  while (!engine.should_exit()) {
-    engine.update();
-
-    ImGui_ImplVulkan_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-    ImGui::ShowDemoWindow();
-    ImGui::Render();
-    std::this_thread::sleep_for(20ms);
   }
 }

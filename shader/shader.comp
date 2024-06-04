@@ -67,6 +67,7 @@ layout(binding = 2) uniform Scene {
 scene;
 
 layout(binding = 3) uniform RenderCallInfo {
+  bool read_only;
   uint number;
   uint total_render_calls;
   uint total_samples;
@@ -326,6 +327,9 @@ Ray get_ray(Viewport viewport) {
 
 layout(local_size_x = 16, local_size_y = 8) in;
 void main() {
+  if (render_call_info.read_only)
+    return;
+
   const vec2 image_size = vec2(imageSize(render_target));
   const float aspect_ratio = image_size.x / image_size.y;
   const float theta = radians(scene.camera.vfov), h = tan(theta / 2),
