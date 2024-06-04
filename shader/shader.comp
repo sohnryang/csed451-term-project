@@ -52,6 +52,8 @@ struct Viewport {
   vec3 pixel_delta_u;
   vec3 pixel_delta_v;
   vec3 pixel00_location;
+  vec3 defocus_disk_u;
+  vec3 defocus_disk_v;
 };
 
 layout(binding = 0, rgba8_snorm) uniform image2D render_target;
@@ -116,6 +118,14 @@ vec3 random_in_unit_sphere() {
 }
 
 vec3 random_unit_vec() { return normalize(random_in_unit_sphere()); }
+
+vec3 random_in_unit_disk() {
+  while (true) {
+    const vec3 v = vec3(random(), random(), 0);
+    if (dot(v, v) < 1)
+      return v;
+  }
+}
 
 HitRecord hit_sphere(uint index, Ray ray, float lo, float hi) {
   const Hittable sphere = scene.hittables[index];
@@ -295,14 +305,22 @@ vec3 ray_color(Ray ray) {
   return attenuation * ambient_light(current_ray);
 }
 
+vec3 defocus_disk_sample(Viewport viewport) {
+  const vec3 p = random_in_unit_disk();
+  return scene.camera.eye + p.x * viewport.defocus_disk_u +
+         p.y * viewport.defocus_disk_v;
+}
+
 Ray get_ray(Viewport viewport) {
-  // TODO: defocus
   const vec3 offset = vec3(random() - 1, random() - 1, 0),
              pixel_sample =
                  viewport.pixel00_location +
                  (gl_GlobalInvocationID.x + offset.x) * viewport.pixel_delta_u +
                  (gl_GlobalInvocationID.y + offset.y) * viewport.pixel_delta_v,
-             origin = scene.camera.eye, direction = pixel_sample - origin;
+             origin = scene.camera.defocus_angle <= 0.0f
+                          ? scene.camera.eye
+                          : defocus_disk_sample(viewport),
+             direction = pixel_sample - origin;
   return Ray(origin, direction);
 }
 
@@ -328,7 +346,8 @@ void main() {
              defocus_disk_u = defocus_radius * u,
              defocus_disk_v = defocus_radius * v;
   const Viewport viewport =
-      Viewport(pixel_delta_u, pixel_delta_v, pixel00_location);
+      Viewport(pixel_delta_u, pixel_delta_v, pixel00_location, defocus_disk_u,
+               defocus_disk_v);
 
   const uint samples_per_pass =
       render_call_info.total_samples / render_call_info.total_render_calls;
