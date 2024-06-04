@@ -137,7 +137,6 @@ private:
   void _create_command_buffer();
   void _create_fence();
   void _create_semaphore();
-  void _recreate_swapchain();
 
 public:
   VulkanEngine(const Settings &settings, gpu::Scene scene);

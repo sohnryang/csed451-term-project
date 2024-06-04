@@ -622,16 +622,6 @@ void VulkanEngine::_create_semaphore() {
   _render_sema = _device.createSemaphore({});
 }
 
-void VulkanEngine::_recreate_swapchain() {
-  _compute_queue.waitIdle();
-  _present_queue.waitIdle();
-
-  _device.destroyImageView(_swap_chain_image_view);
-  _device.destroySwapchainKHR(_swap_chain);
-
-  _create_swap_chain();
-}
-
 VulkanEngine::VulkanEngine(const Settings &settings, gpu::Scene scene)
     : _settings(settings), _scene(scene) {
   _create_window();
