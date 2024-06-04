@@ -14,6 +14,28 @@ FetchContent_Declare(
   GIT_TAG 3.4)
 FetchContent_MakeAvailable(glfw)
 
+FetchContent_Declare(
+  ImGui
+  GIT_REPOSITORY https://github.com/ocornut/imgui
+  GIT_TAG v1.90.7)
+FetchContent_MakeAvailable(ImGui)
+
+add_library(
+  imgui
+  "${imgui_SOURCE_DIR}/imgui.cpp"
+  "${imgui_SOURCE_DIR}/imgui_demo.cpp"
+  "${imgui_SOURCE_DIR}/imgui_draw.cpp"
+  "${imgui_SOURCE_DIR}/imgui_widgets.cpp"
+  "${imgui_SOURCE_DIR}/imgui_tables.cpp"
+  "${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp"
+  "${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp")
+target_include_directories(imgui PUBLIC "${imgui_SOURCE_DIR}"
+                                        "${imgui_SOURCE_DIR}/backends")
+target_link_libraries(
+  imgui
+  PUBLIC Vulkan::Vulkan
+  PUBLIC glfw)
+
 add_executable(
   cpu_tracer
   cpu_tracer.cc
@@ -34,5 +56,4 @@ target_include_directories(gpu_tracer PRIVATE "${PROJECT_SOURCE_DIR}/include")
 target_link_libraries(
   gpu_tracer
   PRIVATE glm::glm
-  PRIVATE Vulkan::Vulkan
-  PRIVATE glfw)
+  PRIVATE imgui)

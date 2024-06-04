@@ -9,6 +9,10 @@
 #include <thread>
 #include <vector>
 
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_vulkan.h>
+
 using namespace std::chrono_literals;
 
 int main() {
@@ -136,7 +140,7 @@ int main() {
   std::copy(hittables.begin(), hittables.end(), scene.hittables);
   std::copy(materials.begin(), materials.end(), scene.materials);
 
-  const std::uint32_t render_calls = 2000, samples = 10000;
+  const std::uint32_t render_calls = 20, samples = 100;
   Settings settings{.window_height = 1080,
                     .window_width = 1920,
                     .shader_file = "shader.comp.spv",
@@ -150,12 +154,26 @@ int main() {
                            .total_render_calls = render_calls,
                            .total_samples = samples};
     std::cout << "Render call #" << i << std::endl;
-    engine.render(info);
     engine.update();
+
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::ShowDemoWindow();
+    ImGui::Render();
+    engine.render(info);
   }
 
   while (!engine.should_exit()) {
     engine.update();
+
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::ShowDemoWindow();
+    ImGui::Render();
     std::this_thread::sleep_for(20ms);
   }
 }

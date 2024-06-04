@@ -54,7 +54,7 @@ private:
   std::uint32_t _present_queue_family;
 
   std::vector<const char *> _required_device_extensions = {
-      VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+      VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME};
   vk::Device _device;
 
   vk::Queue _compute_queue;
@@ -134,6 +134,7 @@ private:
   void _create_descriptor_set();
   void _create_pipeline_layout();
   void _create_pipeline();
+  void _setup_imgui();
   void _create_command_buffer();
   void _create_fence();
   void _create_semaphore();

@@ -13,6 +13,8 @@
 #include <vector>
 
 #define VULKAN_HPP_NO_CONSTRUCTORS
+#include <vulkan/vk_enum_string_helper.h>
+#include <vulkan/vulkan.h>
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_to_string.hpp>
@@ -24,6 +26,10 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_vulkan.h>
 
 std::uint32_t VulkanEngine::_find_memory_type_index(
     std::uint32_t memory_type_bits, const vk::MemoryPropertyFlags &properties) {
@@ -208,7 +214,7 @@ void VulkanEngine::_create_instance() {
       .applicationVersion = 1,
       .pEngineName = "GPU Tracer",
       .engineVersion = 1,
-      .apiVersion = VK_API_VERSION_1_2,
+      .apiVersion = VK_API_VERSION_1_3,
   };
 
   std::uint32_t window_extension_count;
@@ -355,7 +361,14 @@ void VulkanEngine::_create_logical_device() {
 
   vk::PhysicalDeviceFeatures device_features = {};
 
+  constexpr VkPhysicalDeviceDynamicRenderingFeaturesKHR
+      dynamic_rendering_feature{
+          .sType =
+              VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR,
+          .dynamicRendering = VK_TRUE,
+      };
   vk::DeviceCreateInfo device_create_info{
+      .pNext = &dynamic_rendering_feature,
       .queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size()),
       .pQueueCreateInfos = queueCreateInfos.data(),
       .enabledExtensionCount =
@@ -465,10 +478,13 @@ void VulkanEngine::_create_descriptor_set_layout() {
 void VulkanEngine::_create_descriptor_pool() {
   std::vector<vk::DescriptorPoolSize> poolSizes{
       {.type = vk::DescriptorType::eStorageImage, .descriptorCount = 2},
-      {.type = vk::DescriptorType::eUniformBuffer, .descriptorCount = 2}};
+      {.type = vk::DescriptorType::eUniformBuffer, .descriptorCount = 2},
+      {.type = vk::DescriptorType::eCombinedImageSampler, .descriptorCount = 1},
+  };
 
   _descriptor_pool = _device.createDescriptorPool(
-      {.maxSets = 1,
+      {.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+       .maxSets = 100,
        .poolSizeCount = static_cast<uint32_t>(poolSizes.size()),
        .pPoolSizes = poolSizes.data()});
 }
@@ -556,6 +572,39 @@ void VulkanEngine::_create_pipeline() {
 
   _device.destroyShaderModule(compute_shader_module);
 }
+static void check_vk_result(VkResult err) {
+  std::cout << string_VkResult(err) << std::endl;
+}
+
+void VulkanEngine::_setup_imgui() {
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO &io = ImGui::GetIO();
+  io.Fonts->AddFontDefault();
+
+  ImGui::StyleColorsDark();
+
+  ImGui_ImplGlfw_InitForVulkan(_window, true);
+  ImGui_ImplVulkan_InitInfo init_info = {};
+  init_info.Instance = _instance;
+  init_info.PhysicalDevice = _selected_dev;
+  init_info.Device = _device;
+  init_info.QueueFamily = _present_queue_family;
+  init_info.Queue = _present_queue;
+  init_info.PipelineCache = VK_NULL_HANDLE;
+  init_info.DescriptorPool = _descriptor_pool;
+  init_info.Allocator = nullptr;
+  init_info.MinImageCount = 2;
+  init_info.ImageCount = 2;
+  init_info.CheckVkResultFn = check_vk_result;
+  init_info.UseDynamicRendering = true;
+  VkFormat formats[] = {VK_FORMAT_R8G8B8A8_UNORM};
+  init_info.PipelineRenderingCreateInfo = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+      .colorAttachmentCount = 1,
+      .pColorAttachmentFormats = formats};
+  ImGui_ImplVulkan_Init(&init_info);
+}
 
 void VulkanEngine::_create_command_buffer() {
   _command_buffer = _device
@@ -601,6 +650,30 @@ void VulkanEngine::_create_command_buffer() {
                                       float(_settings.group_size_y))),
       1);
 
+  vk::RenderingAttachmentInfo color_attachment{
+      .pNext = nullptr,
+      .imageView = _swap_chain_image_view,
+      .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
+      .loadOp = vk::AttachmentLoadOp::eLoad,
+      .storeOp = vk::AttachmentStoreOp::eStore,
+  };
+  vk::RenderingInfo render_info{
+      .pNext = nullptr,
+      .renderArea = {vk::Offset2D{0, 0},
+                     {_settings.window_width, _settings.window_height}},
+      .layerCount = 1,
+      .colorAttachmentCount = 1,
+      .pColorAttachments = &color_attachment,
+  };
+  auto begin_rendering = (PFN_vkCmdBeginRenderingKHR)vkGetDeviceProcAddr(
+      _device, "vkCmdBeginRenderingKHR");
+  begin_rendering(_command_buffer,
+                  &static_cast<const VkRenderingInfo &>(render_info));
+  ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), _command_buffer);
+  auto end_rendering = (PFN_vkCmdEndRenderingKHR)vkGetDeviceProcAddr(
+      _device, "vkCmdEndRenderingKHR");
+  end_rendering(_command_buffer);
+
   vk::ImageMemoryBarrier image_barrier_to_present = _image_pipeline_barrier(
       vk::AccessFlagBits::eShaderWrite, vk::AccessFlagBits::eMemoryRead,
       vk::ImageLayout::eGeneral, vk::ImageLayout::ePresentSrcKHR,
@@ -640,7 +713,7 @@ VulkanEngine::VulkanEngine(const Settings &settings, gpu::Scene scene)
   _create_descriptor_set();
   _create_pipeline_layout();
   _create_pipeline();
-  _create_command_buffer();
+  _setup_imgui();
   _create_fence();
   _create_semaphore();
 }
@@ -676,6 +749,7 @@ void VulkanEngine::render(const RenderCallInfo &render_call_info) {
   _device.resetFences(_fence);
 
   _update_render_call_info_buffer(render_call_info);
+  _create_command_buffer();
 
   const auto swap_chain_image_result = _device.acquireNextImageKHR(
       _swap_chain, std::numeric_limits<std::uint64_t>::max(), _sema);
