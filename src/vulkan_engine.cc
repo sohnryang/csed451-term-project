@@ -581,6 +581,7 @@ void VulkanEngine::_setup_imgui() {
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
   io.Fonts->AddFontDefault();
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
   ImGui::StyleColorsDark();
 
