@@ -3,10 +3,8 @@
 #include "vulkan_engine.hh"
 
 #include <algorithm>
-#include <chrono>
 #include <cstdint>
 #include <iostream>
-#include <thread>
 #include <vector>
 
 #include <imgui.h>
