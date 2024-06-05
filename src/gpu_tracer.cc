@@ -144,8 +144,8 @@ int main() {
   std::copy(materials.begin(), materials.end(), scene.materials);
 
   const std::uint32_t render_calls = 20, samples = 100;
-  Settings settings{.window_height = 1080,
-                    .window_width = 1920,
+  Settings settings{.window_height = 720,
+                    .window_width = 1280,
                     .shader_file = "shader.comp.spv",
                     .group_size_x = 16,
                     .group_size_y = 8};
