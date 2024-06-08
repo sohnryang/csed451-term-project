@@ -106,8 +106,9 @@ int main() {
              source_normal = glm::vec3(-1, 0, 0),
              destination_center = glm::vec3(0, 1, 2),
              destination_normal = glm::vec3(0, 0, -1);
-  const auto source_material = gpu::Material::from_disk_pair(
+  auto source_material = gpu::Material::from_disk_pair(
       source_center, source_normal, destination_center, destination_normal);
+  source_material.color = {1, 0.9, 0.3};
   hittables.push_back({
       .kind = gpu::HittableKind::DISK,
       .center = source_center,
@@ -116,8 +117,9 @@ int main() {
       .material_index = static_cast<uint32_t>(materials.size()),
   });
   materials.push_back(source_material);
-  const auto destination_material = gpu::Material::from_disk_pair(
+  auto destination_material = gpu::Material::from_disk_pair(
       destination_center, destination_normal, source_center, source_normal);
+  destination_material.color = {0.3, 0.9, 1};
   hittables.push_back({
       .kind = gpu::HittableKind::DISK,
       .center = destination_center,

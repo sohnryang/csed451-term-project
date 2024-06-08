@@ -264,7 +264,7 @@ ScatterResult scatter_portal(Ray ray, HitRecord record) {
              direction =
                  vec3(material.rotation_mat * vec4(ray.direction, 0.0f));
   const Ray scattered = Ray(origin, direction);
-  return ScatterResult(true, scattered, vec3(1, 1, 1));
+  return ScatterResult(true, scattered, material.color);
 }
 
 ScatterResult scatter(uint index, Ray ray, HitRecord record) {
